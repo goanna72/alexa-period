@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  period
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  PeriodCalendarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: period_calendar/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Policies:
+      - Statement:
+        - Sid: Dynamo
+          Effect: Allow
+          Action:
+          - dynamodb:Scan
+          - dynamodb:GetItem
+          Resource: "*"
+      Events:
+        Alexa:
+          Type: AlexaSkill
+          Properties:
+            SkillId: amzn1.ask.skill.358e56e6-230e-417e-bec1-0f88525e8bae
+
+
+Outputs:
+  PeriodCalendarFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt PeriodCalendarFunction.Arn
+  PeriodCalendarFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt PeriodCalendarFunctionRole.Arn
