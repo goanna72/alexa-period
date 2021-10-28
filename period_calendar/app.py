@@ -44,7 +44,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             data = table.query(
                 KeyConditions={
                 'UserID': {
-                'AttributeValueList': ['amzn1.ask.account.AH5RVETXN5X23GWXRZZN6RFKRERM2XZPVFKTYQFSOJETMTI5LI3FGFUKDCFDYIMZIXZYBZRDK456SKM2WQBE7KGODUGIKYVIFOVJAYIKLKOSMS3VSEQHSZGVMEQBWXBKCUXUMLP3ANNQ2QLYHLJQKX7BDYTZC5CRCWLYHK3NE2BYXY33RZPJULVY2CDFFOK5NIWP3MKZ7YB5HBI'],
+                'AttributeValueList': [user_id],
                 'ComparisonOperator': 'EQ'
                 },
             })
