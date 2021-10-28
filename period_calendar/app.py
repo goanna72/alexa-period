@@ -39,12 +39,23 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             import ask_sdk_core
             user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)    
             dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
-            table = dyndb.Table('Menstruation')
-            data = table.scan(FilterExpression=Attr('UserID').eq(user_id))
+            table = dyndb.Table('Menstruation')           
+
+            data = table.query(
+                KeyConditions={
+                'UserID': {
+                'AttributeValueList': ['amzn1.ask.account.AH5RVETXN5X23GWXRZZN6RFKRERM2XZPVFKTYQFSOJETMTI5LI3FGFUKDCFDYIMZIXZYBZRDK456SKM2WQBE7KGODUGIKYVIFOVJAYIKLKOSMS3VSEQHSZGVMEQBWXBKCUXUMLP3ANNQ2QLYHLJQKX7BDYTZC5CRCWLYHK3NE2BYXY33RZPJULVY2CDFFOK5NIWP3MKZ7YB5HBI'],
+                'ComparisonOperator': 'EQ'
+                },
+            })
+
             if data['Count'] == 0:
                 speech_text = "There is no data. Please add a previous period date to forecast your next period."
-            else:
-                max_date = data['Items'][0]['period_date']
+            else :
+                records = data["Items"]
+                records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
+            
+                max_date = records[0]['period_date']
                 datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
                 end_date = datetime_object + timedelta(days=28)
                 date_time = end_date.strftime('%Y-%m-%d')

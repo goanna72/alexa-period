@@ -21,6 +21,7 @@ Resources:
           Action:
           - dynamodb:Scan
           - dynamodb:GetItem
+          - dynamodb:PutItem
           Resource: "*"
       Events:
         Alexa:
