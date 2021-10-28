@@ -19,9 +19,9 @@ Resources:
         - Sid: Dynamo
           Effect: Allow
           Action:
-          - dynamodb:Scan
           - dynamodb:GetItem
           - dynamodb:PutItem
+          - dynamodb:DeleteItem
           - dynamodb:Query
           Resource: "*"
       Events:

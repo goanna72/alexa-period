@@ -34,8 +34,6 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         
         try:
-            #if datetime.strptime(period_date1, '%Y-%m-%d %H:%M:%S') > datetime.today():
-                #raise Exception('Period Date greater than todays date')
             import ask_sdk_core
             user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)    
             dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
@@ -69,6 +67,55 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
         handler_input.response_builder.speak(speech_text).set_should_end_session(False)
         return handler_input.response_builder.response    
 
+class DeletePeriodIntentHandler(AbstractRequestHandler):
+    def can_handle(self, handler_input):
+        return is_intent_name("DeletePeriod")(handler_input)
+
+    def handle(self, handler_input):
+        
+        try:            
+            check_delete = handler_input.request_envelope.request.intent.slots['delete'].value
+            confirm_status = handler_input.request_envelope.request.intent.confirmation_status.value
+
+            if check_delete == 'YES' and confirm_status == 'CONFIRMED':
+                import ask_sdk_core
+                user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)    
+                dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+                table = dyndb.Table('Menstruation')  
+
+                data = table.query(
+                KeyConditions={
+                'UserID': {
+                'AttributeValueList': [user_id],
+                'ComparisonOperator': 'EQ'
+                },
+            })
+
+            if data['Count'] == 0:
+                speech_text = "There is no data to delete."
+            else :
+                records = data["Items"]
+
+                for r in range(len(records)):
+                    session_id = records[r]['SessionID']
+                    table.delete_item(
+                    Key={
+                    'UserID': user_id,
+                    'SessionID': session_id
+                    }
+                )
+                speech_text = "Your data has been deleted"
+            if check_delete == 'NO':
+                speech_text = "No deletion of data actioned "
+                            
+                  
+        except BaseException as e:
+            print(e)
+            raise(e)
+        
+        handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+        return handler_input.response_builder.response    
+
 
 class AddPeriodIntentHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
@@ -80,8 +127,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
             import ask_sdk_core
             user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)
             period_date1 = "2021-11-03 00:00:00"
-            #if datetime.strptime(period_date1, '%Y-%m-%d %H:%M:%S') > datetime.today():
-             #   raise BaseException('Period Date greater than todays date')
+            
             dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
             table = dyndb.Table('Menstruation')
             trans = {}
@@ -105,6 +151,7 @@ sb.add_request_handler(LaunchRequestHandler())
 sb.add_exception_handler(CatchAllExceptionHandler())
 sb.add_request_handler(AddPeriodIntentHandler())
 sb.add_request_handler(NextPeriodIntentHandler())
+sb.add_request_handler(DeletePeriodIntentHandler())
 
 def lambda_handler(event, context):
     return sb.lambda_handler()(event, context)
@@ -203,12 +250,12 @@ if __name__ == "__main__":
             "locale": "en-US",
             "timestamp": "2021-10-26T02:33:50Z",
             "intent": {
-                "name": "NextPeriod",
-                "confirmationStatus": "NONE",
+                "name": "DeletePeriod",
+                "confirmationStatus": "CONFIRMED",
                 "slots": {
-                    "period": {
-                        "name": "period",
-                        "value": "2021-10-21",
+                    "delete": {
+                        "name": "delete",
+                        "value": "YES",
                         "confirmationStatus": "NONE",
                         "source": "USER"
                     }
