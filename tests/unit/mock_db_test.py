@@ -4,43 +4,40 @@ Example of using moto to mock out DynamoDB table
 
 import boto3
 from moto import mock_dynamodb2
-import store
 
 import pytest
 
-from daily_vaccine_total_by_state import app
+from period_calendar import app
+
+def test_hello():
+  assert 1 == 1
+
+# @mock_dynamodb2
+# def test_write_into_table():
+# 	"Test the write_into_table with a valid input data"
+# 	dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+# 	table_name = 'Menstruation'
+# 	table = dynamodb.create_table(TableName = table_name,
+# 								KeySchema = [
+# 								{'AttributeName': 'UserID', 'KeyType': 'HASH'},{'AttributeName': 'SessionID', 'KeyType': 'RANGE'}],
+# 								AttributeDefinitions = [
+# 								{'AttributeName': 'UserID', 'AttributeType': 'S'}, {'AttributeName': 'SessionID', 'AttributeType': 'S'}])
+# 	data = {'UserID': 'ANNA',
+# 			'SessionID': '123456', 'period_date': '2021-10-26', 'add_date': '2021-10-29 12:32:10'}
+# 	table.put_item(Item=data)
+# 	data = {'UserID': 'ANNA', 'SessionID' : '323232', 'period_date':'20-10-15', 
+# 			'add_date': '2021-10-29 12:22:11'}
+# 	table.put_item(Item=data)
+	
+
+# 	ret = app.lambda_handler(alexa_event(), "")
+# 	assert 'Your next period is 2021-11-23' in ret['response']['outputSpeech']['ssml']
 
 
-
-
-@mock_dynamodb2
-def test_write_into_table():
-	"Test the write_into_table with a valid input data"
-	dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
-	table_name = 'Vaccines'
-	table = dynamodb.create_table(TableName = table_name,
-								KeySchema = [
-								{'AttributeName': 'MeasureName', 'KeyType': 'HASH'}],
-								AttributeDefinitions = [
-								{'AttributeName': 'MeasureName', 'AttributeType': 'S'}])
-	data = {'MeasureName': 'TAS - Administration state - Daily increase doses recorded',
-			'Total': 123456}
-	table.put_item(Item=data)
-	data = {'MeasureName': 'TAS - Population 16 and over',
-			'Total': 9999}
-	table.put_item(Item=data)
-	data = {'MeasureName': 'TAS - Residence state - Number of people 16 and over fully vaccinated',
-			'Total': 3333}
-	table.put_item(Item=data)
-
-	ret = app.lambda_handler(alexa_event(), "")
-	assert 'The daily vaccine total for Tasmania is 123456. 33.33% of the eligible TAS population are fully vaccinated' in ret['response']['outputSpeech']['ssml']
-
-
-	# #response = table.get_item(Key={'MeasureName': data['MeasureName']})
-	# response = table.get_item(Key={'MeasureName': "NT - Administration state - Daily increase doses recorded"})
-	# actual_output = response['Item']
-	# assert actual_output == data
+# 	# #response = table.get_item(Key={'MeasureName': data['MeasureName']})
+# 	# response = table.get_item(Key={'MeasureName': "NT - Administration state - Daily increase doses recorded"})
+# 	# actual_output = response['Item']
+# 	# assert actual_output == data
 
 
 
@@ -139,34 +136,15 @@ def alexa_event():
         "locale": "en-US",
         "timestamp": "2021-10-19T04:57:36Z",
         "intent": {
-          "name": "VaccineIntent",
+          "name": "NextPeriodIntent",
           "confirmationStatus": "NONE",
           "slots": {
-            "states": {
-              "name": "states",
-              "value": "Tasmania",
-              "resolutions": {
-                "resolutionsPerAuthority": [
-                  {
-                    "authority": "amzn1.er-authority.echo-sdk.amzn1.ask.skill.xxxx.states",
-                    "status": {
-                      "code": "ER_SUCCESS_MATCH"
-                    },
-                    "values": [
-                      {
-                        "value": {
-                          "name": "tasmania",
-                          "id": "TAS"
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              "confirmationStatus": "NONE",
-              "source": "USER"
-            }
-          }
+				    "delete": {
+					  "name": "delete",
+					  "confirmationStatus": "NONE",
+					  "source": "USER"
+				    }
+			    }
         },
         "dialogState": "COMPLETED"
       }
