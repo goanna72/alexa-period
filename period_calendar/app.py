@@ -9,7 +9,13 @@ from ask_sdk_core.dispatch_components import AbstractExceptionHandler
 from ask_sdk_core.utils import is_request_type, is_intent_name
 from datetime import datetime, date
 import json
-    
+
+from ask_sdk_model.ui import SimpleCard
+from ask_sdk_model import Response
+from ask_sdk_model.interfaces.alexa.presentation.apl import (
+    RenderDocumentDirective, ExecuteCommandsDirective, SpeakItemCommand,
+    AutoPageCommand, HighlightMode)
+
 class LaunchRequestHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return is_request_type("LaunchRequest")(handler_input)
@@ -64,7 +70,114 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             print(e)
             raise(e)
         
-        handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+            RenderDocumentDirective(
+                document= {
+    "type": "APL",
+    "version": "1.0",
+    "theme": "dark",
+    "import": [],
+    "resources": [],
+    "styles": {
+      "headerStyle": {
+        "values": [{
+          "color": "#008080",
+          "fontSize": "38",
+          "fontWeight": 900
+        }]
+      },
+      "textBlockStyle": {
+        "values": [{
+          "color": "indianred",
+          "fontSize": "32"
+        }]
+      },
+      "footerStyle": {
+        "values": [{
+          "fontSize": "20",
+          "fontStyle": "italic"
+        }]
+      }
+    },
+    "layouts": {},
+    "mainTemplate": {
+        "items": [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                      "type": "Container",
+                      "height": "400vh",
+                      "width": "400vw",
+                      "items": [
+                        {
+                          "type": "Container",
+                          "paddingBottom": "70dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": " ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "30dp",
+                          "paddingLeft": "50dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": "Your next period is:  ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "300dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": " " + end_date.strftime('%d-%b-%Y'),
+                            "style": "headerStyle"
+                          }]
+                        }, {
+           
+                          "type": "Container",
+                          "position": "absolute",
+                          "bottom": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": "This is footer block. Try APL.",
+                            "style": "footerStyle"
+                          }]
+                      }]
+                    }
+                ]
+            }
+        ]
+    }
+},
+                datasources={
+                    'deviceTemplateData': {
+                        'type': 'object',
+                        'objectId': 'deviceSample',
+                        'properties': {
+                            'hintString': 'try and buy more devices!'
+                        },
+                        'transformers': [
+                            {
+                                'inputPath': 'hintString',
+                                'transformer': 'textToHint'
+                            }
+                        ]
+                    }
+                }
+            )
+        ).set_should_end_session(False)
         return handler_input.response_builder.response    
 
 class DeletePeriodIntentHandler(AbstractRequestHandler):
@@ -247,12 +360,13 @@ if __name__ == "__main__":
 		"locale": "en-US",
 		"timestamp": "2021-10-28T07:30:28Z",
 		"intent": {
-			"name": "DeletePeriod",
+			"name": "NextPeriod",
 			"confirmationStatus": "CONFIRMED",
 			"slots": {
-				"delete": {
-					"name": "delete",
+				"period": {
+					"name": "period",
 					"confirmationStatus": "NONE",
+					"value" : "2021-10-15",
 					"source": "USER"
 				}
 			}
