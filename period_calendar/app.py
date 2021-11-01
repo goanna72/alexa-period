@@ -58,12 +58,166 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             else :
                 records = data["Items"]
                 records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
-            
                 max_date = records[0]['period_date']
                 datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
                 end_date = datetime_object + timedelta(days=28)
                 date_time = end_date.strftime('%Y-%m-%d')
-                speech_text = "Your next period is " + date_time
+                date_format = "%Y-%m-%d"
+                a = datetime.strptime(datetime.today().strftime(date_format),date_format)
+                b = datetime.strptime(date_time, date_format)
+                numDays = b - a
+                if numDays.days > 1:
+                    strDay = "days"
+                else:
+                    strDay = "day"
+                speech_text = "Your next period is " + date_time + ". You have " + str(numDays.days) + " " + strDay + " until your next period."
+
+
+        except BaseException as e:
+            print(e)
+            raise(e)
+        
+        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+            RenderDocumentDirective(
+                document= {
+    "type": "APL",
+    "version": "1.0",
+    "theme": "dark",
+    "import": [],
+    "resources": [],
+    "styles": {
+      "headerStyle": {
+        "values": [{
+          "color": "#008080",
+          "fontSize": "38",
+          "fontWeight": 900
+        }]
+      },
+      "textBlockStyle": {
+        "values": [{
+          "color": "indianred",
+          "fontSize": "32"
+        }]
+      },
+      "footerStyle": {
+        "values": [{
+          "fontSize": "20",
+          "fontStyle": "italic"
+        }]
+      }
+    },
+    "layouts": {},
+    "mainTemplate": {
+        "items": [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                      "type": "Container",
+                      "height": "400vh",
+                      "width": "400vw",
+                      "items": [
+                        {
+                          "type": "Container",
+                          "paddingBottom": "70dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": "Number of days until next period: " + str(numDays.days),
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "30dp",
+                          "paddingLeft": "50dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": "Your next period is:  ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "300dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": " " + end_date.strftime('%d-%b-%Y'),
+                            "style": "headerStyle"
+                          }]
+                        }, {
+           
+                          "type": "Container",
+                          "position": "absolute",
+                          "bottom": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": "This is footer block. Try APL.",
+                            "style": "footerStyle"
+                          }]
+                      }]
+                    }
+                ]
+            }
+        ]
+    }
+},
+                datasources={
+                    'deviceTemplateData': {
+                        'type': 'object',
+                        'objectId': 'deviceSample',
+                        'properties': {
+                            'hintString': 'try and buy more devices!'
+                        },
+                        'transformers': [
+                            {
+                                'inputPath': 'hintString',
+                                'transformer': 'textToHint'
+                            }
+                        ]
+                    }
+                }
+            )
+        ).set_should_end_session(False)
+        return handler_input.response_builder.response    
+
+class LastPeriodIntentHandler(AbstractRequestHandler):
+    def can_handle(self, handler_input):
+        return is_intent_name("LastPeriod")(handler_input)
+
+    def handle(self, handler_input):
+        
+        try:
+            import ask_sdk_core
+            user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)    
+            dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+            table = dyndb.Table('Menstruation')           
+
+            data = table.query(
+                KeyConditions={
+                'UserID': {
+                'AttributeValueList': [user_id],
+                'ComparisonOperator': 'EQ'
+                },
+            })
+
+            if data['Count'] == 0:
+                speech_text = "There is no data."
+            else :
+                records = data["Items"]
+                records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
+            
+                max_date = records[0]['period_date']
+                datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
+                end_date = datetime_object
+                date_time = end_date.strftime('%Y-%m-%d')
+                speech_text = "Your most recent period was on " + date_time
                             
                   
         except BaseException as e:
@@ -129,7 +283,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                           "vertical-align": "middle",
                           "items": [{
                             "type": "Text",
-                            "text": "Your next period is:  ",
+                            "text": "Your most recent period was on:  ",
                             "style": "headerStyle"
                           }]
                         }, {
@@ -244,6 +398,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
             trans['UserID'] = user_id
             trans['SessionID'] = str(uuid.uuid4())
             trans['period_date'] = period_date
+            datetime_object = datetime.strptime(period_date, '%Y-%m-%d')
             trans['add_date'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
             table.put_item(Item=trans)  
                             
@@ -253,8 +408,117 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
             raise(e)
         
         speech_text = "You added your period date " + period_date
-        handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+        
+        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+            RenderDocumentDirective(
+                document= {
+    "type": "APL",
+    "version": "1.0",
+    "theme": "dark",
+    "import": [],
+    "resources": [],
+    "styles": {
+      "headerStyle": {
+        "values": [{
+          "color": "#008080",
+          "fontSize": "38",
+          "fontWeight": 900
+        }]
+      },
+      "textBlockStyle": {
+        "values": [{
+          "color": "indianred",
+          "fontSize": "32"
+        }]
+      },
+      "footerStyle": {
+        "values": [{
+          "fontSize": "20",
+          "fontStyle": "italic"
+        }]
+      }
+    },
+    "layouts": {},
+    "mainTemplate": {
+        "items": [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                      "type": "Container",
+                      "height": "400vh",
+                      "width": "400vw",
+                      "items": [
+                        {
+                          "type": "Container",
+                          "paddingBottom": "70dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": " ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "30dp",
+                          "paddingLeft": "50dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": "You added your period date:  ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "300dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": " " + datetime_object.strftime('%d-%b-%Y'),
+                            "style": "headerStyle"
+                          }]
+                        }, {
+           
+                          "type": "Container",
+                          "position": "absolute",
+                          "bottom": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": "This is footer block. Try APL.",
+                            "style": "footerStyle"
+                          }]
+                      }]
+                    }
+                ]
+            }
+        ]
+    }
+},
+                datasources={
+                    'deviceTemplateData': {
+                        'type': 'object',
+                        'objectId': 'deviceSample',
+                        'properties': {
+                            'hintString': 'try and buy more devices!'
+                        },
+                        'transformers': [
+                            {
+                                'inputPath': 'hintString',
+                                'transformer': 'textToHint'
+                            }
+                        ]
+                    }
+                }
+            )
+        ).set_should_end_session(False)
         return handler_input.response_builder.response   
+        
 
 sb = SkillBuilder()
 sb.add_request_handler(LaunchRequestHandler())
@@ -262,6 +526,8 @@ sb.add_exception_handler(CatchAllExceptionHandler())
 sb.add_request_handler(AddPeriodIntentHandler())
 sb.add_request_handler(NextPeriodIntentHandler())
 sb.add_request_handler(DeletePeriodIntentHandler())
+sb.add_request_handler(LastPeriodIntentHandler())
+
 
 def lambda_handler(event, context):
     return sb.lambda_handler()(event, context)
@@ -360,7 +626,7 @@ if __name__ == "__main__":
 		"locale": "en-US",
 		"timestamp": "2021-10-28T07:30:28Z",
 		"intent": {
-			"name": "NextPeriod",
+			"name": "AddPeriod",
 			"confirmationStatus": "CONFIRMED",
 			"slots": {
 				"period": {
