@@ -12,6 +12,7 @@ import json
 
 from ask_sdk_model.ui import SimpleCard
 from ask_sdk_model import Response
+from ask_sdk_model.interfaces.alexa.presentation.apl import UserEvent
 from ask_sdk_model.interfaces.alexa.presentation.apl import (
     RenderDocumentDirective, ExecuteCommandsDirective, SpeakItemCommand,
     AutoPageCommand, HighlightMode)
@@ -35,7 +36,10 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
 
 class NextPeriodIntentHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
-        return is_intent_name("NextPeriod")(handler_input)
+        return is_intent_name("NextPeriod")(handler_input) or \
+            (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+                len(list(handler_input.request_envelope.request.arguments)) > 0 and
+                list(handler_input.request_envelope.request.arguments)[0] == 'nextButton')
 
     def handle(self, handler_input):
         
@@ -55,6 +59,9 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
 
             if data['Count'] == 0:
                 speech_text = "There is no data. Please add a previous period date to forecast your next period."
+                aplString = "There is no data. "
+                endDateString = ""
+                nextString = ""
             else :
                 records = data["Items"]
                 records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
@@ -71,6 +78,9 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                 else:
                     strDay = "day"
                 speech_text = "Your next period is " + date_time + ". You have " + str(numDays.days) + " " + strDay + " until your next period."
+                aplString = "Number of days until next period: " + str(numDays.days)
+                endDateString = end_date.strftime('%d-%b-%Y')
+                nextString = "Your next period is:  "
 
 
         except BaseException as e:
@@ -121,10 +131,10 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                           "type": "Container",
                           "paddingBottom": "70dp",
                           "paddingLeft": "40dp",
-                          "paddingTop": "20dp",
+                          "paddingTop": "50dp",
                           "items": [{
                             "type": "Text",
-                            "text": "Number of days until next period: " + str(numDays.days),
+                            "text": aplString,
                             "style": "headerStyle"
                           }]
                         }, {
@@ -136,7 +146,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                           "vertical-align": "middle",
                           "items": [{
                             "type": "Text",
-                            "text": "Your next period is:  ",
+                            "text": nextString + " ",
                             "style": "headerStyle"
                           }]
                         }, {
@@ -148,7 +158,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                           "vertical-align": "middle",
                           "items": [{
                             "type": "Text",
-                            "text": " " + end_date.strftime('%d-%b-%Y'),
+                            "text": " " + endDateString,
                             "style": "headerStyle"
                           }]
                         }, {
@@ -189,7 +199,10 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
 
 class LastPeriodIntentHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
-        return is_intent_name("LastPeriod")(handler_input)
+        return is_intent_name("LastPeriod")(handler_input) or \
+              (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+                len(list(handler_input.request_envelope.request.arguments)) > 0 and
+                list(handler_input.request_envelope.request.arguments)[0] == 'lastButton')
 
     def handle(self, handler_input):
         
@@ -209,6 +222,7 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
 
             if data['Count'] == 0:
                 speech_text = "There is no data."
+                endString = "There is no data"
             else :
                 records = data["Items"]
                 records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
@@ -218,6 +232,7 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
                 end_date = datetime_object
                 date_time = end_date.strftime('%Y-%m-%d')
                 speech_text = "Your most recent period was on " + date_time
+                endString = end_date.strftime('%d-%b-%Y')
                             
                   
         except BaseException as e:
@@ -295,7 +310,7 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
                           "vertical-align": "middle",
                           "items": [{
                             "type": "Text",
-                            "text": " " + end_date.strftime('%d-%b-%Y'),
+                            "text": " " + endString,
                             "style": "headerStyle"
                           }]
                         }, {
@@ -334,15 +349,180 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
         ).set_should_end_session(False)
         return handler_input.response_builder.response    
 
-class DeletePeriodIntentHandler(AbstractRequestHandler):
+
+class DeleteAPLPeriodIntentHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
-        return is_intent_name("DeletePeriod")(handler_input)
+        return (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+                len(list(handler_input.request_envelope.request.arguments)) > 0 and
+                list(handler_input.request_envelope.request.arguments)[0] == 'deleteButton')
 
     def handle(self, handler_input):
         
-        try:            
-            confirm_status = handler_input.request_envelope.request.intent.confirmation_status.value
-            speech_text = "No deletion of data actioned "
+        
+        speech_text = "Are you sure"
+        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+            RenderDocumentDirective(
+                document= {
+     "type": "APL",
+    "version": "1.0",
+    "theme": "dark",
+    "import": [
+        {
+        "name": "alexa-layouts",
+        "version": "1.4.0"
+      }
+    ],
+    "resources": [],
+    "styles": {
+      "headerStyle": {
+        "values": [{
+          "color": "#008080",
+          "fontSize": "38",
+          "fontWeight": 900
+        }]
+      },
+      "textBlockStyle": {
+        "values": [{
+          "color": "indianred",
+          "fontSize": "32"
+        }]
+      },
+      "footerStyle": {
+        "values": [{
+          "fontSize": "20",
+          "fontStyle": "italic"
+        }]
+      }
+    },
+    "layouts": {},
+    "mainTemplate": {
+        "items": [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                      "type": "Container",
+                      "height": "400vh",
+                      "width": "400vw",
+                      "items": [
+                        {
+                          "type": "Container",
+                          "paddingBottom": "70dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": " ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "100dp",
+                          "paddingLeft": "20dp",
+                          "text-align": "center",
+                          "vertical-align": "left",
+                          "items": [{
+                            "type": "Text",
+                            "text": "Delete Data - Are You Sure?   ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "180dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [
+                          {
+                            "type": "AlexaButton",
+                            "buttonText": "YES",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "${data.buttonStyle}",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "YesButton"
+                            ]
+                        }
+                        } ,
+                          {
+                            "type": "AlexaButton",
+                            "buttonText": "NO",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "${data.buttonStyle}",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "NoButton"
+                            ]
+                        }
+                        }
+                          ]
+                        }, {
+           
+                          "type": "Container",
+                          "position": "absolute",
+                          "bottom": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": "This is footer block. Try APL.",
+                            "style": "footerStyle"
+                          }]
+                      }]
+                    }
+                ]
+            }
+        ]
+    }
+},
+                datasources={
+                    'deviceTemplateData': {
+                        'type': 'object',
+                        'objectId': 'deviceSample',
+                        'properties': {
+                            'hintString': 'try and buy more devices!'
+                        },
+                        'transformers': [
+                            {
+                                'inputPath': 'hintString',
+                                'transformer': 'textToHint'
+                            }
+                        ]
+                    }
+                }
+            )
+        ).set_should_end_session(False)
+        return handler_input.response_builder.response   
+   
+
+class DeletePeriodIntentHandler(AbstractRequestHandler):
+    def can_handle(self, handler_input):
+        return is_intent_name("DeletePeriod")(handler_input) or \
+        (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+        len(list(handler_input.request_envelope.request.arguments)) > 0 and
+        list(handler_input.request_envelope.request.arguments)[0] == 'YesButton') or \
+        (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+        len(list(handler_input.request_envelope.request.arguments)) > 0 and
+        list(handler_input.request_envelope.request.arguments)[0] == 'NoButton')
+
+    def handle(self, handler_input):
+        
+        try:
+            if  (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+            len(list(handler_input.request_envelope.request.arguments)) > 0 and
+            list(handler_input.request_envelope.request.arguments)[0] == 'YesButton'):
+                confirm_status ='CONFIRMED'
+            elif  (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+            len(list(handler_input.request_envelope.request.arguments)) > 0 and
+            list(handler_input.request_envelope.request.arguments)[0] == 'NoButton'):
+                speech_text = "No deletion of data actioned "
+                confirm_status = "NONE"
+            else:
+                confirm_status = handler_input.request_envelope.request.intent.confirmation_status.value
             if confirm_status == 'CONFIRMED':
                 import ask_sdk_core
                 user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)    
@@ -377,8 +557,116 @@ class DeletePeriodIntentHandler(AbstractRequestHandler):
             print(e)
             raise(e)
         
-        handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+            RenderDocumentDirective(
+                document= {
+    "type": "APL",
+    "version": "1.0",
+    "theme": "dark",
+    "import": [],
+    "resources": [],
+    "styles": {
+      "headerStyle": {
+        "values": [{
+          "color": "#008080",
+          "fontSize": "38",
+          "fontWeight": 900
+        }]
+      },
+      "textBlockStyle": {
+        "values": [{
+          "color": "indianred",
+          "fontSize": "32"
+        }]
+      },
+      "footerStyle": {
+        "values": [{
+          "fontSize": "20",
+          "fontStyle": "italic"
+        }]
+      }
+    },
+    "layouts": {},
+    "mainTemplate": {
+        "items": [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                      "type": "Container",
+                      "height": "400vh",
+                      "width": "400vw",
+                      "items": [
+                        {
+                          "type": "Container",
+                          "paddingBottom": "70dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": " ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "30dp",
+                          "paddingLeft": "50dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": "Deletion of period data :  ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "200dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": " " + speech_text,
+                            "style": "headerStyle"
+                          }]
+                        }, {
+           
+                          "type": "Container",
+                          "position": "absolute",
+                          "bottom": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": "This is footer block. Try APL.",
+                            "style": "footerStyle"
+                          }]
+                      }]
+                    }
+                ]
+            }
+        ]
+    }
+},
+                datasources={
+                    'deviceTemplateData': {
+                        'type': 'object',
+                        'objectId': 'deviceSample',
+                        'properties': {
+                            'hintString': 'try and buy more devices!'
+                        },
+                        'transformers': [
+                            {
+                                'inputPath': 'hintString',
+                                'transformer': 'textToHint'
+                            }
+                        ]
+                    }
+                }
+            )
+        ).set_should_end_session(False)
         return handler_input.response_builder.response    
+    
 
 
 class AddPeriodIntentHandler(AbstractRequestHandler):
@@ -519,6 +807,164 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
         ).set_should_end_session(False)
         return handler_input.response_builder.response   
         
+class ShowPeriodIntentHandler(AbstractRequestHandler):
+    def can_handle(self, handler_input):
+        return is_intent_name("ShowPeriod")(handler_input)
+
+    def handle(self, handler_input):
+   
+        speech_text = "Period dashboard "
+        
+        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+         RenderDocumentDirective(
+        document= {
+    "type": "APL",
+    "version": "1.0",
+    "theme": "dark",
+    "import": [
+        {
+        "name": "alexa-layouts",
+        "version": "1.4.0"
+      }
+    ],
+    "resources": [],
+    "styles": {
+      "headerStyle": {
+        "values": [{
+          "color": "#008080",
+          "fontSize": "38",
+          "fontWeight": 900
+        }]
+      },
+      "textBlockStyle": {
+        "values": [{
+          "color": "indianred",
+          "fontSize": "32"
+        }]
+      },
+      "footerStyle": {
+        "values": [{
+          "fontSize": "20",
+          "fontStyle": "italic"
+        }]
+      }
+    },
+    "layouts": {},
+    "mainTemplate": {
+        "items": [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                      "type": "Container",
+                      "height": "400vh",
+                      "width": "400vw",
+                      "items": [
+                        {
+                          "type": "Container",
+                          "paddingBottom": "70dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": " ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "100dp",
+                          "paddingLeft": "20dp",
+                          "text-align": "center",
+                          "vertical-align": "left",
+                          "items": [{
+                            "type": "Text",
+                            "text": "Period Dashboard :  ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "180dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [
+                          {
+                            "type": "AlexaButton",
+                            "buttonText": "Last Period",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "${data.buttonStyle}",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "lastButton"
+                            ]
+                        }
+                        } ,
+                          {
+                            "type": "AlexaButton",
+                            "buttonText": "Next Period",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "${data.buttonStyle}",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "nextButton"
+                            ]
+                        }
+                        },
+                          {
+                            "type": "AlexaButton",
+                            "buttonText": "Delete Data",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "${data.buttonStyle}",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "deleteButton"
+                            ]
+                        }
+                }
+                          ]
+                        }, {
+           
+                          "type": "Container",
+                          "position": "absolute",
+                          "bottom": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": "This is footer block. Try APL.",
+                            "style": "footerStyle"
+                          }]
+                      }]
+                    }
+                ]
+            }
+        ]
+    }
+},
+                datasources={
+                    'deviceTemplateData': {
+                        'type': 'object',
+                        'objectId': 'deviceSample',
+                        'properties': {
+                            'hintString': 'try and buy more devices!'
+                        },
+                        'transformers': [
+                            {
+                                'inputPath': 'hintString',
+                                'transformer': 'textToHint'
+                            }
+                        ]
+                    }
+                }
+            )
+        ).set_should_end_session(False)
+        return handler_input.response_builder.response   
 
 sb = SkillBuilder()
 sb.add_request_handler(LaunchRequestHandler())
@@ -527,6 +973,9 @@ sb.add_request_handler(AddPeriodIntentHandler())
 sb.add_request_handler(NextPeriodIntentHandler())
 sb.add_request_handler(DeletePeriodIntentHandler())
 sb.add_request_handler(LastPeriodIntentHandler())
+sb.add_request_handler(ShowPeriodIntentHandler())
+sb.add_request_handler(DeleteAPLPeriodIntentHandler())
+
 
 
 def lambda_handler(event, context):
@@ -626,7 +1075,7 @@ if __name__ == "__main__":
 		"locale": "en-US",
 		"timestamp": "2021-10-28T07:30:28Z",
 		"intent": {
-			"name": "AddPeriod",
+			"name": "ShowPeriod",
 			"confirmationStatus": "CONFIRMED",
 			"slots": {
 				"period": {
