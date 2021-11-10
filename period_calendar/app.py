@@ -678,8 +678,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
         try:
             import ask_sdk_core
             user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)
-            period_date1 = "2021-11-03 00:00:00"
-            
+
             dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
             table = dyndb.Table('Menstruation')
             trans = {}
@@ -965,6 +964,187 @@ class ShowPeriodIntentHandler(AbstractRequestHandler):
             )
         ).set_should_end_session(False)
         return handler_input.response_builder.response   
+        
+class ShowDatesIntentHandler(AbstractRequestHandler):
+    def can_handle(self, handler_input):
+        return is_intent_name("ShowDates")(handler_input) or \
+              (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+                len(list(handler_input.request_envelope.request.arguments)) > 0 and
+                list(handler_input.request_envelope.request.arguments)[0] == 'datesButton')
+
+    def handle(self, handler_input):
+        
+        try:
+            import ask_sdk_core
+            user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)    
+            dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+            table = dyndb.Table('Menstruation')           
+
+            data = table.query(
+                KeyConditions={
+                'UserID': {
+                'AttributeValueList': [user_id],
+                'ComparisonOperator': 'EQ'
+                },
+            })
+
+            if data['Count'] == 0:
+                speech_text = "There is no data."
+                endString = "There is no data"
+            else :
+                records = data["Items"]
+                records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
+                
+                for r in range(len(records)):
+                  listItems = records[r]['period_date']
+                     
+            
+                max_date = records[0]['period_date']
+                datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
+                end_date = datetime_object
+                date_time = end_date.strftime('%Y-%m-%d')
+                speech_text = "Your period dates are " + date_time
+                endString = end_date.strftime('%d-%b-%Y')
+                            
+                  
+        except BaseException as e:
+            print(e)
+            raise(e)
+        
+        items_array =  [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                      "type": "Container",
+                      "height": "400vh",
+                      "width": "400vw",
+                      "items": [
+                        {
+                          "type": "Container",
+                          "paddingBottom": "70dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": " ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "30dp",
+                          "paddingLeft": "50dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": "Your period dates:  ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "300dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": " fake title",
+                            "style": "headerStyle"
+                          }]
+                        }, 
+                        {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "300dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": " fake title xxx",
+                            "style": "headerStyle"
+                          }]
+                        },
+                      ]
+                    }
+                ]
+            }
+        ]
+        
+        items_array[0]['items'][0]['items'].append({
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "300dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": " fake title appended",
+                            "style": "headerStyle"
+                          }]
+                        })
+        
+        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+            RenderDocumentDirective(
+                document= {
+    "type": "APL",
+    "version": "1.0",
+    "theme": "dark",
+    "import": [],
+    "resources": [],
+    "styles": {
+      "headerStyle": {
+        "values": [{
+          "color": "#008080",
+          "fontSize": "38",
+          "fontWeight": 900
+        }]
+      },
+      "textBlockStyle": {
+        "values": [{
+          "color": "indianred",
+          "fontSize": "32"
+        }]
+      },
+      "footerStyle": {
+        "values": [{
+          "fontSize": "20",
+          "fontStyle": "italic"
+        }]
+      }
+    },
+    "layouts": {},
+    "mainTemplate": {
+        "parameters": [
+            "myDocumentData"
+            ],
+        "items": items_array
+    }
+},
+                datasources={
+                    'myDocumentData': {
+                        'type': 'object',
+                        'Title': 'test',
+                        'objectId': 'deviceSample',
+                        'properties': {
+                            'hintString': 'try and buy more devices!'
+                        },
+                        'transformers': [
+                            {
+                                'inputPath': 'hintString',
+                                'transformer': 'textToHint'
+                            }
+                        ]
+                    }
+                }
+            )
+        ).set_should_end_session(False)
+        return handler_input.response_builder.response    
+
 
 sb = SkillBuilder()
 sb.add_request_handler(LaunchRequestHandler())
@@ -975,7 +1155,7 @@ sb.add_request_handler(DeletePeriodIntentHandler())
 sb.add_request_handler(LastPeriodIntentHandler())
 sb.add_request_handler(ShowPeriodIntentHandler())
 sb.add_request_handler(DeleteAPLPeriodIntentHandler())
-
+sb.add_request_handler(ShowDatesIntentHandler())
 
 
 def lambda_handler(event, context):
