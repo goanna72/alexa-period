@@ -995,16 +995,13 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                 records = data["Items"]
                 records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
                 
-                for r in range(len(records)):
-                  listItems = records[r]['period_date']
-                     
             
-                max_date = records[0]['period_date']
-                datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
-                end_date = datetime_object
-                date_time = end_date.strftime('%Y-%m-%d')
-                speech_text = "Your period dates are " + date_time
-                endString = end_date.strftime('%d-%b-%Y')
+                #max_date = records[0]['period_date']
+                #datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
+                #end_date = datetime_object
+                #date_time = end_date.strftime('%Y-%m-%d')
+                speech_text = "Your period dates are listed below"
+                #endString = end_date.strftime('%d-%b-%Y')
                             
                   
         except BaseException as e:
@@ -1017,84 +1014,40 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                 "items": [
                     {
                       "type": "Container",
-                      "height": "400vh",
-                      "width": "400vw",
                       "items": [
                         {
-                          "type": "Container",
-                          "paddingBottom": "70dp",
-                          "paddingLeft": "40dp",
-                          "paddingTop": "20dp",
-                          "items": [{
-                            "type": "Text",
-                            "text": " ",
-                            "style": "headerStyle"
-                          }]
+                          "type": "AlexaTextList",
+                          "headerTitle": "period dates",
+                            "listItems": "${myDocumentData.listItemsToShow}",
                         }, {
                           "type": "Container",
-                          "direction": "row",
-                          "paddingBottom": "30dp",
-                          "paddingLeft": "50dp",
-                          "text-align": "center",
-                          "vertical-align": "middle",
                           "items": [{
                             "type": "Text",
                             "text": "Your period dates:  ",
                             "style": "headerStyle"
                           }]
-                        }, {
-                            "type": "Container",
-                          "direction": "row",
-                          "paddingBottom": "10dp",
-                          "paddingLeft": "300dp",
-                          "text-align": "center",
-                          "vertical-align": "middle",
-                          "items": [{
-                            "type": "Text",
-                            "text": " fake title",
-                            "style": "headerStyle"
-                          }]
                         }, 
-                        {
-                            "type": "Container",
-                          "direction": "row",
-                          "paddingBottom": "10dp",
-                          "paddingLeft": "300dp",
-                          "text-align": "center",
-                          "vertical-align": "middle",
-                          "items": [{
-                            "type": "Text",
-                            "text": " fake title xxx",
-                            "style": "headerStyle"
-                          }]
-                        },
+                        
                       ]
                     }
                 ]
             }
         ]
         
-        items_array[0]['items'][0]['items'].append({
-                            "type": "Container",
-                          "direction": "row",
-                          "paddingBottom": "10dp",
-                          "paddingLeft": "300dp",
-                          "text-align": "center",
-                          "vertical-align": "middle",
-                          "items": [{
-                            "type": "Text",
-                            "text": " fake title appended",
-                            "style": "headerStyle"
-                          }]
-                        })
+
         
         handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
             RenderDocumentDirective(
                 document= {
     "type": "APL",
-    "version": "1.0",
+    "version": "1.8",
     "theme": "dark",
-    "import": [],
+    "import": [
+          {
+      "name": "alexa-layouts",
+      "version": "1.4.0"
+    }
+      ],
     "resources": [],
     "styles": {
       "headerStyle": {
@@ -1127,23 +1080,22 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
 },
                 datasources={
                     'myDocumentData': {
-                        'type': 'object',
-                        'Title': 'test',
+                 #       'type': 'object',
+                        'headerTitle': 'test',
                         'objectId': 'deviceSample',
                         'properties': {
                             'hintString': 'try and buy more devices!'
                         },
-                        'transformers': [
-                            {
-                                'inputPath': 'hintString',
-                                'transformer': 'textToHint'
-                            }
+                        'listItemsToShow': [
+                           { 'primaryText' : datetime.strptime(record['period_date'], '%Y-%m-%d').strftime('%d-%b-%Y') }
+                           for record in records
+ 
                         ]
                     }
                 }
             )
         ).set_should_end_session(False)
-        return handler_input.response_builder.response    
+        return handler_input.response_builder.response   
 
 
 sb = SkillBuilder()
@@ -1271,3 +1223,4 @@ if __name__ == "__main__":
 }"""
 
     sb.lambda_handler()(json.loads(fake_event), None)
+
