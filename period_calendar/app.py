@@ -91,9 +91,12 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             RenderDocumentDirective(
                 document= {
     "type": "APL",
-    "version": "1.0",
+    "version": "1.8",
     "theme": "dark",
-    "import": [],
+    "import": [ {
+        "name": "alexa-layouts",
+        "version": "1.4.0"
+      }],
     "resources": [],
     "styles": {
       "headerStyle": {
@@ -127,11 +130,28 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                       "height": "400vh",
                       "width": "400vw",
                       "items": [
-                        {
+                             {
+                          "type": "Container",
+                          "paddingBottom": "20dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "AlexaButton",
+                            "buttonText": "Dashboard",
+                            "id": "idButton",
+                            "buttonStyle": "outlined",
+                            "touchForward": "false",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "dashboardButton"
+                            ]}
+                          }]
+                      },  {
                           "type": "Container",
                           "paddingBottom": "70dp",
                           "paddingLeft": "40dp",
-                          "paddingTop": "50dp",
+                          "paddingTop": "40dp",
                           "items": [{
                             "type": "Text",
                             "text": aplString,
@@ -243,9 +263,12 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
             RenderDocumentDirective(
                 document= {
     "type": "APL",
-    "version": "1.0",
+    "version": "1.8",
     "theme": "dark",
-    "import": [],
+    "import": [ {
+        "name": "alexa-layouts",
+        "version": "1.4.0"
+      }],
     "resources": [],
     "styles": {
       "headerStyle": {
@@ -276,8 +299,8 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
                 "items": [
                     {
                       "type": "Container",
-                      "height": "400vh",
-                      "width": "400vw",
+                  #    "height": "400vh",
+                  #   "width": "400vw",
                       "items": [
                         {
                           "type": "Container",
@@ -285,9 +308,16 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
                           "paddingLeft": "40dp",
                           "paddingTop": "20dp",
                           "items": [{
-                            "type": "Text",
-                            "text": " ",
-                            "style": "headerStyle"
+                            "type": "AlexaButton",
+                            "buttonText": "Dashboard",
+                            "id": "idButton",
+                            "buttonStyle": "outlined",
+                            "touchForward": "false",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "dashboardButton"
+                            ]}
                           }]
                         }, {
                           "type": "Container",
@@ -318,9 +348,11 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
                           "type": "Container",
                           "position": "absolute",
                           "bottom": "20dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
                           "items": [{
                             "type": "Text",
-                            "text": "This is footer block. Try APL.",
+                            "text": " ",
                             "style": "footerStyle"
                           }]
                       }]
@@ -808,7 +840,10 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
         
 class ShowPeriodIntentHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
-        return is_intent_name("ShowPeriod")(handler_input)
+        return is_intent_name("ShowPeriod")(handler_input)  or \
+              (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+                len(list(handler_input.request_envelope.request.arguments)) > 0 and
+                list(handler_input.request_envelope.request.arguments)[0] in {'dashboardButton','goBack'}) 
 
     def handle(self, handler_input):
    
@@ -885,10 +920,23 @@ class ShowPeriodIntentHandler(AbstractRequestHandler):
                             "type": "Container",
                           "direction": "row",
                           "paddingBottom": "10dp",
-                          "paddingLeft": "180dp",
+                          "paddingLeft": "70dp",
                           "text-align": "center",
                           "vertical-align": "middle",
                           "items": [
+                            {
+                            "type": "AlexaButton",
+                            "buttonText": "All Dates",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "${data.buttonStyle}",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "AllDatesButton"
+                            ]
+                        }
+                        } ,
                           {
                             "type": "AlexaButton",
                             "buttonText": "Last Period",
@@ -970,7 +1018,7 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
         return is_intent_name("ShowDates")(handler_input) or \
               (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
                 len(list(handler_input.request_envelope.request.arguments)) > 0 and
-                list(handler_input.request_envelope.request.arguments)[0] == 'datesButton')
+                list(handler_input.request_envelope.request.arguments)[0] == 'AllDatesButton')
 
     def handle(self, handler_input):
         
@@ -1018,15 +1066,23 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                         {
                           "type": "AlexaTextList",
                           "headerTitle": "period dates",
+                          "headerBackButtonOnCommand": 	
+                            {"type":"SendEvent","arguments":["goBack"]},
+                          "headerBackButton": "true",
                             "listItems": "${myDocumentData.listItemsToShow}",
-                        }, {
-                          "type": "Container",
-                          "items": [{
-                            "type": "Text",
-                            "text": "Your period dates:  ",
-                            "style": "headerStyle"
-                          }]
-                        }, 
+                        },
+                        #{
+                         #   "type": "AlexaButton",
+                        #    "buttonText": "Dashboard",
+                        #    "id": "idButton",
+                        #    "buttonStyle": "outlined",
+                        #    "touchForward": "false",
+                        #    "primaryAction": {
+                        #    "type": "SendEvent",
+                        #    "arguments": [
+                                "dashboardButton"
+                        #    ]}
+                        #  }
                         
                       ]
                     }
@@ -1053,19 +1109,19 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
       "headerStyle": {
         "values": [{
           "color": "#008080",
-          "fontSize": "38",
-          "fontWeight": 900
+          "fontSize": "12",
+          "fontWeight": 50
         }]
       },
       "textBlockStyle": {
         "values": [{
           "color": "indianred",
-          "fontSize": "32"
+          "fontSize": "12"
         }]
       },
       "footerStyle": {
         "values": [{
-          "fontSize": "20",
+          "fontSize": "10",
           "fontStyle": "italic"
         }]
       }
