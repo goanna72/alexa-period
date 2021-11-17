@@ -1264,9 +1264,97 @@ class QuitPeriodIntentHandler(AbstractRequestHandler):
 
   def handle(self, handler_input):
         
-    speech_text = "please come back again"
-    handler_input.response_builder.speak(speech_text).set_should_end_session(True)
-    return handler_input.response_builder.response   
+    speech_text = "Please come back again"
+    handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+            RenderDocumentDirective(
+                document= {
+    "type": "APL",
+    "version": "1.0",
+    "theme": "dark",
+     "import": [
+        {
+        "name": "alexa-layouts",
+        "version": "1.4.0"
+      }
+    ],
+    "resources": [],
+    "styles": {
+      "headerStyle": {
+        "values": [{
+          "color": "#008080",
+          "fontSize": "38",
+          "fontWeight": 900
+        }]
+      },
+      "textBlockStyle": {
+        "values": [{
+          "color": "indianred",
+          "fontSize": "32"
+        }]
+      },
+      "footerStyle": {
+        "values": [{
+          "fontSize": "20",
+          "fontStyle": "italic"
+        }]
+      }
+    },
+    "layouts": {},
+    "mainTemplate": {
+        "items": [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                      "type": "Container",
+                      "height": "400vh",
+                      "width": "400vw",
+                      "items": [
+                        {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "100dp",
+                          "paddingLeft": "50dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": "  ",
+                            "style": "headerStyle"
+                          }]
+                        }, {
+                            "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "10dp",
+                          "paddingLeft": "200dp",
+                          "text-align": "center",
+                          "vertical-align": "middle",
+                          "items": [{
+                            "type": "Text",
+                            "text": " " + speech_text,
+                            "style": "headerStyle"
+                          }]
+                        }, {
+           
+                          "type": "Container",
+                          "position": "absolute",
+                          "bottom": "20dp",
+                          "items": [{
+                            "type": "Text",
+                            "text": "This is footer block. Try APL.",
+                            "style": "footerStyle"
+                          }]
+                      }]
+                    }
+                ]
+            }
+        ]
+    }
+}
+                
+            )
+        ).set_should_end_session(True)
+    return handler_input.response_builder.response    
 
 
 sb = SkillBuilder()
