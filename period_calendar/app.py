@@ -132,6 +132,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                       "items": [
                              {
                           "type": "Container",
+                          "direction": "row",
                           "paddingBottom": "20dp",
                           "paddingLeft": "40dp",
                           "paddingTop": "20dp",
@@ -140,13 +141,27 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                             "buttonText": "Dashboard",
                             "id": "idButton",
                             "buttonStyle": "outlined",
-                            "touchForward": "false",
+                            "touchForward": "${touchForwardSetting}",
                             "primaryAction": {
                             "type": "SendEvent",
                             "arguments": [
                                 "dashboardButton"
                             ]}
-                          }]
+                                 },
+                           {
+                            "type": "AlexaButton",
+                            "buttonText": "Quit",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "outlined",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "QuitButton"
+                            ]
+                        }
+                        }
+                          ]
                       },  {
                           "type": "Container",
                           "paddingBottom": "70dp",
@@ -304,6 +319,7 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
                       "items": [
                         {
                           "type": "Container",
+                          "direction": "row",
                           "paddingBottom": "70dp",
                           "paddingLeft": "40dp",
                           "paddingTop": "20dp",
@@ -312,13 +328,27 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
                             "buttonText": "Dashboard",
                             "id": "idButton",
                             "buttonStyle": "outlined",
-                            "touchForward": "false",
+                            "touchForward": "${touchForwardSetting}",
                             "primaryAction": {
                             "type": "SendEvent",
                             "arguments": [
                                 "dashboardButton"
                             ]}
-                          }]
+                          },
+                           {
+                            "type": "AlexaButton",
+                            "buttonText": "Quit",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "outlined",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "QuitButton"
+                            ]
+                        }
+                        }
+                          ]
                         }, {
                           "type": "Container",
                           "direction": "row",
@@ -439,14 +469,37 @@ class DeleteAPLPeriodIntentHandler(AbstractRequestHandler):
                       "items": [
                         {
                           "type": "Container",
+                          "direction": "row",
                           "paddingBottom": "70dp",
                           "paddingLeft": "40dp",
                           "paddingTop": "20dp",
                           "items": [{
-                            "type": "Text",
-                            "text": " ",
-                            "style": "headerStyle"
-                          }]
+                            "type": "AlexaButton",
+                            "buttonText": "Dashboard",
+                            "id": "idButton",
+                            "buttonStyle": "${data.buttonStyle}",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "dashboardButton"
+                            ]}
+                          },
+                           {
+                            "type": "AlexaButton",
+                            "buttonText": "Quit",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "outlined",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "QuitButton"
+                            ]
+                        }
+                        }
+                          
+                          ]
                         }, {
                           "type": "Container",
                           "direction": "row",
@@ -471,7 +524,7 @@ class DeleteAPLPeriodIntentHandler(AbstractRequestHandler):
                             "type": "AlexaButton",
                             "buttonText": "YES",
                             "id": "${data.id}_${exampleType}",
-                            "buttonStyle": "${data.buttonStyle}",
+                            "buttonStyle": "ingress",
                             "touchForward": "${touchForwardSetting}",
                             "primaryAction": {
                             "type": "SendEvent",
@@ -484,7 +537,7 @@ class DeleteAPLPeriodIntentHandler(AbstractRequestHandler):
                             "type": "AlexaButton",
                             "buttonText": "NO",
                             "id": "${data.id}_${exampleType}",
-                            "buttonStyle": "${data.buttonStyle}",
+                            "buttonStyle": "egress",
                             "touchForward": "${touchForwardSetting}",
                             "primaryAction": {
                             "type": "SendEvent",
@@ -595,7 +648,12 @@ class DeletePeriodIntentHandler(AbstractRequestHandler):
     "type": "APL",
     "version": "1.0",
     "theme": "dark",
-    "import": [],
+     "import": [
+        {
+        "name": "alexa-layouts",
+        "version": "1.4.0"
+      }
+    ],
     "resources": [],
     "styles": {
       "headerStyle": {
@@ -631,14 +689,36 @@ class DeletePeriodIntentHandler(AbstractRequestHandler):
                       "items": [
                         {
                           "type": "Container",
+                          "direction": "row",
                           "paddingBottom": "70dp",
                           "paddingLeft": "40dp",
                           "paddingTop": "20dp",
                           "items": [{
-                            "type": "Text",
-                            "text": " ",
-                            "style": "headerStyle"
-                          }]
+                            "type": "AlexaButton",
+                            "buttonText": "Dashboard",
+                            "id": "idButton",
+                            "buttonStyle": "outlined",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "dashboardButton"
+                            ]}
+                           },
+                           {
+                            "type": "AlexaButton",
+                            "buttonText": "Quit",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "outlined",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "QuitButton"
+                            ]
+                        }
+                        }
+                          ]
                         }, {
                           "type": "Container",
                           "direction": "row",
@@ -734,7 +814,12 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
     "type": "APL",
     "version": "1.0",
     "theme": "dark",
-    "import": [],
+    "import": [
+        {
+        "name": "alexa-layouts",
+        "version": "1.4.0"
+      }
+    ],
     "resources": [],
     "styles": {
       "headerStyle": {
@@ -905,6 +990,7 @@ class ShowPeriodIntentHandler(AbstractRequestHandler):
                             "style": "headerStyle"
                           }]
                         }, {
+                          
                           "type": "Container",
                           "direction": "row",
                           "paddingBottom": "100dp",
@@ -915,14 +1001,34 @@ class ShowPeriodIntentHandler(AbstractRequestHandler):
                             "type": "Text",
                             "text": "Period Dashboard :  ",
                             "style": "headerStyle"
-                          }]
+                          },
+                          {
+                            "type": "Text",
+                            "text": "  ",
+                            "paddingLeft": "290dp",
+                            "style": "headerStyle"
+                          },
+                                {
+                            "type": "AlexaButton",
+                            "buttonText": "Quit",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "outlined",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "QuitButton"
+                            ]
+                        }
+                        }
+                          ]
                         }, {
                             "type": "Container",
                           "direction": "row",
                           "paddingBottom": "10dp",
-                          "paddingLeft": "70dp",
-                          "text-align": "center",
-                          "vertical-align": "middle",
+                          "paddingLeft": "20dp",
+                       #   "text-align": "center",
+                        #  "vertical-align": "middle",
                           "items": [
                             {
                             "type": "AlexaButton",
@@ -949,8 +1055,9 @@ class ShowPeriodIntentHandler(AbstractRequestHandler):
                                 "lastButton"
                             ]
                         }
+                        
                         } ,
-                          {
+                         {
                             "type": "AlexaButton",
                             "buttonText": "Next Period",
                             "id": "${data.id}_${exampleType}",
@@ -975,7 +1082,8 @@ class ShowPeriodIntentHandler(AbstractRequestHandler):
                                 "deleteButton"
                             ]
                         }
-                }
+                        }
+                         
                           ]
                         }, {
            
@@ -1035,7 +1143,8 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                 'ComparisonOperator': 'EQ'
                 },
             })
-
+            
+            speech_text = "Your period dates are "
             if data['Count'] == 0:
                 speech_text = "There is no data."
                 endString = "There is no data"
@@ -1043,14 +1152,16 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                 records = data["Items"]
                 records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
                 
-            
-                #max_date = records[0]['period_date']
-                #datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
-                #end_date = datetime_object
-                #date_time = end_date.strftime('%Y-%m-%d')
-                speech_text = "Your period dates are listed below"
-                #endString = end_date.strftime('%d-%b-%Y')
-                            
+                if data['Count'] < 6:
+                  for r in range(len(records)):
+                    max_date = records[r]['period_date']
+                    end_date = datetime.strptime(max_date, '%Y-%m-%d')
+                  # date_time = end_date.strftime('%Y-%m-%d')
+                  #speech_text = "Your period dates are listed below"
+                    endString = end_date.strftime('%d-%b-%Y')
+                    speech_text = speech_text + ", " + endString
+                else:
+                  speech_text = "Your period dates are listed "
                   
         except BaseException as e:
             print(e)
@@ -1071,18 +1182,6 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                           "headerBackButton": "true",
                             "listItems": "${myDocumentData.listItemsToShow}",
                         },
-                        #{
-                         #   "type": "AlexaButton",
-                        #    "buttonText": "Dashboard",
-                        #    "id": "idButton",
-                        #    "buttonStyle": "outlined",
-                        #    "touchForward": "false",
-                        #    "primaryAction": {
-                        #    "type": "SendEvent",
-                        #    "arguments": [
-                                "dashboardButton"
-                        #    ]}
-                        #  }
                         
                       ]
                     }
@@ -1154,6 +1253,22 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
         return handler_input.response_builder.response   
 
 
+class QuitPeriodIntentHandler(AbstractRequestHandler):
+  def can_handle(self, handler_input):
+    return (is_request_type("SessionEndedRequest")(handler_input)  or \
+            is_intent_name("AMAZON.StopIntent")(handler_input) or \
+                is_intent_name("AMAZON.CancelIntent")(handler_input)) or \
+              (is_request_type('Alexa.Presentation.APL.UserEvent')(handler_input) and
+                len(list(handler_input.request_envelope.request.arguments)) > 0 and
+                list(handler_input.request_envelope.request.arguments)[0] == 'QuitButton')
+
+  def handle(self, handler_input):
+        
+    speech_text = "please come back again"
+    handler_input.response_builder.speak(speech_text).set_should_end_session(True)
+    return handler_input.response_builder.response   
+
+
 sb = SkillBuilder()
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_exception_handler(CatchAllExceptionHandler())
@@ -1164,6 +1279,8 @@ sb.add_request_handler(LastPeriodIntentHandler())
 sb.add_request_handler(ShowPeriodIntentHandler())
 sb.add_request_handler(DeleteAPLPeriodIntentHandler())
 sb.add_request_handler(ShowDatesIntentHandler())
+sb.add_request_handler(QuitPeriodIntentHandler())
+
 
 
 def lambda_handler(event, context):
