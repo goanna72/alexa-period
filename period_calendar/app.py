@@ -628,11 +628,11 @@ class DeletePeriodIntentHandler(AbstractRequestHandler):
                     records = data["Items"]
 
                     for r in range(len(records)):
-                        session_id = records[r]['SessionID']
+                        period_date = records[r]['period_date']
                         table.delete_item(
                         Key={
                         'UserID': user_id,
-                        'SessionID': session_id
+                        'period_date': period_date
                         }
                     )
                     speech_text = "Your data has been deleted"
@@ -795,7 +795,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
             table = dyndb.Table('Menstruation')
             trans = {}
             trans['UserID'] = user_id
-            trans['SessionID'] = str(uuid.uuid4())
+            #trans['SessionID'] = str(uuid.uuid4())
             trans['period_date'] = period_date
             datetime_object = datetime.strptime(period_date, '%Y-%m-%d')
             trans['add_date'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
@@ -853,7 +853,39 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
                       "height": "400vh",
                       "width": "400vw",
                       "items": [
-                        {
+                                           {
+                          "type": "Container",
+                          "direction": "row",
+                          "paddingBottom": "70dp",
+                          "paddingLeft": "40dp",
+                          "paddingTop": "20dp",
+                          "items": [{
+                            "type": "AlexaButton",
+                            "buttonText": "Dashboard",
+                            "id": "idButton",
+                            "buttonStyle": "outlined",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "dashboardButton"
+                            ]}
+                          },
+                           {
+                            "type": "AlexaButton",
+                            "buttonText": "Quit",
+                            "id": "${data.id}_${exampleType}",
+                            "buttonStyle": "outlined",
+                            "touchForward": "${touchForwardSetting}",
+                            "primaryAction": {
+                            "type": "SendEvent",
+                            "arguments": [
+                                "QuitButton"
+                            ]
+                        }
+                        }
+                          ]
+                        }, {
                           "type": "Container",
                           "paddingBottom": "70dp",
                           "paddingLeft": "40dp",
