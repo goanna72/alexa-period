@@ -790,24 +790,50 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
         try:
             import ask_sdk_core
             user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)
-
+            
             dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
-            table = dyndb.Table('Menstruation')
-            trans = {}
-            trans['UserID'] = user_id
-            #trans['SessionID'] = str(uuid.uuid4())
-            trans['period_date'] = period_date
-            datetime_object = datetime.strptime(period_date, '%Y-%m-%d')
-            trans['add_date'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-            table.put_item(Item=trans)  
+            table = dyndb.Table('Menstruation')  
+
+            data = table.query(
+                KeyConditions={
+                'UserID': {
+                'AttributeValueList': [user_id],
+                'ComparisonOperator': 'EQ'
+                },
+            })
+
+            period_flag = False 
+            records = data["Items"]
+
+            for r in range(len(records)):
+                old_period_date = records[r]['period_date']
+                
+                if old_period_date == period_date:
+                    period_flag = True
+                    speech_text = "Period date already exists"
+                    strAPL = "Period date already exists:"
+                    datetime_object = datetime.strptime(period_date, '%Y-%m-%d')
+                    str_datetime_object = datetime_object.strftime('%d-%b-%Y')
+                    
+            if period_flag == False:
+                #dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+                #table = dyndb.Table('Menstruation')
+                trans = {}
+                trans['UserID'] = user_id
+                trans['period_date'] = period_date
+                datetime_object = datetime.strptime(period_date, '%Y-%m-%d')
+                str_datetime_object = datetime_object.strftime('%d-%b-%Y')
+                trans['add_date'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+                table.put_item(Item=trans)  
+                speech_text = "You added your period date " + period_date
+                strAPL = "You added your period date:  "
                             
                   
         except BaseException as e:
             print(e)
             raise(e)
         
-        speech_text = "You added your period date " + period_date
-        
+
         handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
             RenderDocumentDirective(
                 document= {
@@ -856,7 +882,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
                                            {
                           "type": "Container",
                           "direction": "row",
-                          "paddingBottom": "70dp",
+                          "paddingBottom": "50dp",
                           "paddingLeft": "40dp",
                           "paddingTop": "20dp",
                           "items": [{
@@ -887,7 +913,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
                           ]
                         }, {
                           "type": "Container",
-                          "paddingBottom": "70dp",
+                          "paddingBottom": "20dp",
                           "paddingLeft": "40dp",
                           "paddingTop": "20dp",
                           "items": [{
@@ -904,7 +930,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
                           "vertical-align": "middle",
                           "items": [{
                             "type": "Text",
-                            "text": "You added your period date:  ",
+                            "text": strAPL,
                             "style": "headerStyle"
                           }]
                         }, {
@@ -916,7 +942,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
                           "vertical-align": "middle",
                           "items": [{
                             "type": "Text",
-                            "text": " " + datetime_object.strftime('%d-%b-%Y'),
+                            "text": " " + str_datetime_object,
                             "style": "headerStyle"
                           }]
                         }, {
