@@ -65,9 +65,22 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             else :
                 records = data["Items"]
                 records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
+                count = 0
+                ave = 28
+                if data['Count'] > 1:
+                    for r in range(len(records)-1):
+                        per_date1 = records[r]['period_date']
+                        per_date2 = records[r+1]['period_date']
+                        d1 = datetime.strptime(per_date1, '%Y-%m-%d')
+                        d2 = datetime.strptime(per_date2, '%Y-%m-%d')
+                        diff = abs((d2 - d1).days)
+                        count = count + diff
+                    lenrec = len(records) - 1
+                    ave = round(count /lenrec)
+                
                 max_date = records[0]['period_date']
                 datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
-                end_date = datetime_object + timedelta(days=28)
+                end_date = datetime_object + timedelta(days=ave)
                 date_time = end_date.strftime('%Y-%m-%d')
                 date_format = "%Y-%m-%d"
                 a = datetime.strptime(datetime.today().strftime(date_format),date_format)
@@ -77,6 +90,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                     strDay = "days"
                 else:
                     strDay = "day"
+                
                 speech_text = "Your next period is " + date_time + ". You have " + str(numDays.days) + " " + strDay + " until your next period."
                 aplString = "Number of days until next period: " + str(numDays.days)
                 endDateString = end_date.strftime('%d-%b-%Y')
@@ -1212,8 +1226,8 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                 
                 if data['Count'] < 6:
                   for r in range(len(records)):
-                    max_date = records[r]['period_date']
-                    end_date = datetime.strptime(max_date, '%Y-%m-%d')
+                    per_date = records[r]['period_date']
+                    end_date = datetime.strptime(per_date, '%Y-%m-%d')
                   # date_time = end_date.strftime('%Y-%m-%d')
                   #speech_text = "Your period dates are listed below"
                     endString = end_date.strftime('%d-%b-%Y')
