@@ -1216,10 +1216,12 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                 },
             })
             
+            flag = 0
             speech_text = "Your period dates are "
             if data['Count'] == 0:
                 speech_text = "There is no data."
                 endString = "There is no data"
+                flag = 1
             else :
                 records = data["Items"]
                 records.sort(key=lambda x:datetime.strptime(x["period_date"], '%Y-%m-%d'),reverse=True)
@@ -1262,8 +1264,70 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
         ]
         
 
+        if flag == 0:
+            handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+                RenderDocumentDirective(
+                    document= {
+        "type": "APL",
+        "version": "1.8",
+        "theme": "dark",
+        "import": [
+              {
+          "name": "alexa-layouts",
+          "version": "1.4.0"
+        }
+          ],
+        "resources": [],
+        "styles": {
+          "headerStyle": {
+            "values": [{
+              "color": "#008080",
+              "fontSize": "12",
+              "fontWeight": 50
+            }]
+          },
+          "textBlockStyle": {
+            "values": [{
+              "color": "indianred",
+              "fontSize": "12"
+            }]
+          },
+          "footerStyle": {
+            "values": [{
+              "fontSize": "10",
+              "fontStyle": "italic"
+            }]
+          }
+        },
+        "layouts": {},
+        "mainTemplate": {
+            "parameters": [
+                "myDocumentData"
+                ],
+            "items": items_array
+        }
+    },
         
-        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+                    datasources={
+                        'myDocumentData': {
+                     #       'type': 'object',
+                            'headerTitle': 'test',
+                            'objectId': 'deviceSample',
+                            'properties': {
+                                'hintString': 'try and buy more devices!'
+                            },
+                            'listItemsToShow': [
+                               { 'primaryText' : datetime.strptime(record['period_date'], '%Y-%m-%d').strftime('%d-%b-%Y') }
+                               for record in records
+     
+                            ]
+                        }
+                    }
+                )
+            ).set_should_end_session(False)
+            return handler_input.response_builder.response   
+        else :
+             handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
             RenderDocumentDirective(
                 document= {
     "type": "APL",
@@ -1305,6 +1369,7 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
         "items": items_array
     }
 },
+    
                 datasources={
                     'myDocumentData': {
                  #       'type': 'object',
@@ -1312,12 +1377,8 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                         'objectId': 'deviceSample',
                         'properties': {
                             'hintString': 'try and buy more devices!'
-                        },
-                        'listItemsToShow': [
-                           { 'primaryText' : datetime.strptime(record['period_date'], '%Y-%m-%d').strftime('%d-%b-%Y') }
-                           for record in records
- 
-                        ]
+                        }
+                        
                     }
                 }
             )
