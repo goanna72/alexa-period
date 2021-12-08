@@ -1428,6 +1428,16 @@ class QuitPeriodIntentHandler(AbstractRequestHandler):
         ).set_should_end_session(True)
     return handler_input.response_builder.response    
 
+class HelpPeriodIntentHandler(AbstractRequestHandler):
+    def can_handle(self, handler_input):
+      return is_intent_name("AMAZON.HelpIntent")(handler_input)
+
+
+    def handle(self, handler_input):
+      speech_text = "Please refer to application description for sample phrases,  You can add period data by saying add period date for 26th October 2021, to get next period date you can say next period, to get last period date you can say last period, to delete all your data you can say delete data"
+      handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+      return handler_input.response_builder.response   
+
 
 sb = SkillBuilder()
 sb.add_request_handler(LaunchRequestHandler())
@@ -1440,6 +1450,7 @@ sb.add_request_handler(ShowPeriodIntentHandler())
 sb.add_request_handler(DeleteAPLPeriodIntentHandler())
 sb.add_request_handler(ShowDatesIntentHandler())
 sb.add_request_handler(QuitPeriodIntentHandler())
+sb.add_request_handler(HelpPeriodIntentHandler())
 
 
 

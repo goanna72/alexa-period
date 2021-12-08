@@ -17,13 +17,13 @@ def test_delete_period():
 	table_name = 'Menstruation'
 	table = dynamodb.create_table(TableName = table_name,
 								KeySchema = [
-								{'AttributeName': 'UserID', 'KeyType': 'HASH'},{'AttributeName': 'SessionID', 'KeyType': 'RANGE'}],
+								{'AttributeName': 'UserID', 'KeyType': 'HASH'},{'AttributeName': 'period_date', 'KeyType': 'RANGE'}],
 								AttributeDefinitions = [
-								{'AttributeName': 'UserID', 'AttributeType': 'S'}, {'AttributeName': 'SessionID', 'AttributeType': 'S'}])
+								{'AttributeName': 'UserID', 'AttributeType': 'S'}, {'AttributeName': 'period_date', 'AttributeType': 'S'}])
 	data = {'UserID': 'amzn1.ask.account.xxxx',
-			'SessionID': '123456', 'period_date': '2021-10-26', 'add_date': '2021-10-29 12:32:10'}
+			'period_date': '2021-10-26', 'add_date': '2021-10-29 12:32:10'}
 	table.put_item(Item=data)
-	data = {'UserID': 'amzn1.ask.account.xxxx', 'SessionID' : '323232', 'period_date':'2021-10-15', 
+	data = {'UserID': 'amzn1.ask.account.xxxx', 'period_date':'2021-10-15', 
 			'add_date': '2021-10-29 12:22:11'}
 	table.put_item(Item=data)
 	

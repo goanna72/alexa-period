@@ -21,14 +21,14 @@ def test_add_period():
 								AttributeDefinitions = [
 								{'AttributeName': 'UserID', 'AttributeType': 'S'}, {'AttributeName': 'period_date', 'AttributeType': 'S'}])
 	data = {'UserID': 'amzn1.ask.account.xxxx',
-			 'period_date': '2021-10-27', 'add_date': '2021-10-29 12:32:10'}
+			 'period_date': '2021-10-14', 'add_date': '2021-10-29 12:32:10'}
 	table.put_item(Item=data)
 	data = {'UserID': 'amzn1.ask.account.xxxx', 'period_date':'2021-10-16', 
 			'add_date': '2021-10-29 12:22:11'}
 	table.put_item(Item=data)
 	
 	ret = app.lambda_handler(alexa_event(), "")
-	assert 'You added your period date 2021-10-27' in ret['response']['outputSpeech']['ssml']
+	assert 'You added your period date 2021-10-07' in ret['response']['outputSpeech']['ssml']
 
 
 # 	# #response = table.get_item(Key={'MeasureName': data['MeasureName']})
@@ -138,7 +138,7 @@ def alexa_event():
           "slots": {
 				    "period": {
 					  "name": "period",
-            "value": "2021-10-15",
+            "value": "2021-10-07",
 					  "confirmationStatus": "NONE",
 					  "source": "USER"
 				    }
