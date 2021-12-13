@@ -6,7 +6,7 @@ import uuid
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler
 from ask_sdk_core.dispatch_components import AbstractExceptionHandler
-from ask_sdk_core.utils import is_request_type, is_intent_name
+from ask_sdk_core.utils import is_request_type, is_intent_name, get_supported_interfaces
 from datetime import datetime, date
 import json
 
@@ -101,7 +101,13 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             print(e)
             raise(e)
         
-        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+        if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
+          handler_input.response_builder.speak("Your next period is ").set_should_end_session(False)
+          return handler_input.response_builder.response  
+          
+        else:
+
+          handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
             RenderDocumentDirective(
                 document= {
     "type": "APL",
@@ -287,8 +293,13 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
         except BaseException as e:
             print(e)
             raise(e)
-        
-        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+
+        if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
+          handler_input.response_builder.speak("Your most recent period was on").set_should_end_session(False)
+          return handler_input.response_builder.response  
+
+        else:
+          handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
             RenderDocumentDirective(
                 document= {
     "type": "APL",
@@ -655,8 +666,14 @@ class DeletePeriodIntentHandler(AbstractRequestHandler):
         except BaseException as e:
             print(e)
             raise(e)
+
+        if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
+          handler_input.response_builder.speak(speech_text).set_should_end_session(True)
+          return handler_input.response_builder.response  
+
+        else:
         
-        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+          handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
             RenderDocumentDirective(
                 document= {
     "type": "APL",
@@ -1006,7 +1023,12 @@ class ShowPeriodIntentHandler(AbstractRequestHandler):
    
         speech_text = "Period dashboard "
         
-        handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+        if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
+          handler_input.response_builder.speak("Period dashboard, you don't have a screen").set_should_end_session(True)
+          return handler_input.response_builder.response  
+
+        else:        
+          handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
          RenderDocumentDirective(
         document= {
     "type": "APL",
@@ -1218,6 +1240,7 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
             
             flag = 0
             speech_text = "Your period dates are "
+            endString = ""
             if data['Count'] == 0:
                 speech_text = "There is no data."
                 endString = "There is no data"
@@ -1240,8 +1263,16 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
         except BaseException as e:
             print(e)
             raise(e)
+
+        if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
+          if endString == "":
+            speech_text = "You don't have a screen to list all dates"
+          handler_input.response_builder.speak(speech_text).set_should_end_session(True)
+          return handler_input.response_builder.response  
+
+        else:        
         
-        items_array =  [
+          items_array =  [
             {
                 "type": "Container",
                 "items": [
@@ -1398,7 +1429,12 @@ class QuitPeriodIntentHandler(AbstractRequestHandler):
   def handle(self, handler_input):
         
     speech_text = "Please come back again"
-    handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
+    if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
+          handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+          return handler_input.response_builder.response  
+
+    else:
+      handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
             RenderDocumentDirective(
                 document= {
     "type": "APL",
