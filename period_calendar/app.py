@@ -102,7 +102,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             raise(e)
         
         if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
-          handler_input.response_builder.speak("Your next period is ").set_should_end_session(False)
+          handler_input.response_builder.speak("Your next period is ").set_should_end_session(True)
           return handler_input.response_builder.response  
           
         else:
@@ -249,7 +249,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                     }
                 }
             )
-        ).set_should_end_session(False)
+        ).set_should_end_session(True)
         return handler_input.response_builder.response    
 
 class LastPeriodIntentHandler(AbstractRequestHandler):
@@ -295,7 +295,7 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
             raise(e)
 
         if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
-          handler_input.response_builder.speak("Your most recent period was on").set_should_end_session(False)
+          handler_input.response_builder.speak("Your most recent period was on").set_should_end_session(True)
           return handler_input.response_builder.response  
 
         else:
@@ -433,7 +433,7 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
                     }
                 }
             )
-        ).set_should_end_session(False)
+        ).set_should_end_session(True)
         return handler_input.response_builder.response    
 
 
@@ -807,7 +807,7 @@ class DeletePeriodIntentHandler(AbstractRequestHandler):
                     }
                 }
             )
-        ).set_should_end_session(False)
+        ).set_should_end_session(True)
         return handler_input.response_builder.response    
     
 
@@ -1211,7 +1211,7 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                         }
                     }
                 )
-            ).set_should_end_session(False)
+            ).set_should_end_session(True)
             return handler_input.response_builder.response   
         else :
              handler_input.response_builder.speak(speech_text).set_card(SimpleCard('Hello', speech_text)).add_directive(
@@ -1269,7 +1269,7 @@ class ShowDatesIntentHandler(AbstractRequestHandler):
                     }
                 }
             )
-        ).set_should_end_session(False)
+        ).set_should_end_session(True)
         return handler_input.response_builder.response   
 
 
@@ -1286,7 +1286,7 @@ class QuitPeriodIntentHandler(AbstractRequestHandler):
         
     speech_text = "Please come back again"
     if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
-          handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+          handler_input.response_builder.speak(speech_text).set_should_end_session(True)
           return handler_input.response_builder.response  
 
     else:
