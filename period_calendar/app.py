@@ -95,6 +95,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
                         count = count + diff
                     lenrec = len(records) - 1
                     ave = round(count /lenrec)
+                    
                 
                 max_date = records[0]['period_date']
                 datetime_object = datetime.strptime(max_date, '%Y-%m-%d')
@@ -120,7 +121,7 @@ class NextPeriodIntentHandler(AbstractRequestHandler):
             raise(e)
         
         if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
-          handler_input.response_builder.speak("Your next period is ").set_should_end_session(True)
+          handler_input.response_builder.speak(speech_text).set_should_end_session(True)
           return handler_input.response_builder.response  
           
         else:
@@ -313,7 +314,7 @@ class LastPeriodIntentHandler(AbstractRequestHandler):
             raise(e)
 
         if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
-          handler_input.response_builder.speak("Your most recent period was on").set_should_end_session(True)
+          handler_input.response_builder.speak(speech_text).set_should_end_session(True)
           return handler_input.response_builder.response  
 
         else:
@@ -895,7 +896,7 @@ class ShowPeriodIntentHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
    
-        speech_text = "Period dashboard "
+        speech_text = "Period dashboard. What would you like to do? "
         
         if get_supported_interfaces(handler_input).alexa_presentation_apl is None: 
           handler_input.response_builder.speak("Period dashboard, you don't have a screen").set_should_end_session(True)
