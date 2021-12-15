@@ -21,9 +21,27 @@ class LaunchRequestHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return is_request_type("LaunchRequest")(handler_input)
 
-    def handle(self, handler_input):
-        handler_input.response_builder.speak("Welcome to period tracker").set_should_end_session(False)
-        return handler_input.response_builder.response    
+    def handle(self, handler_input):    
+      import ask_sdk_core
+      user_id = ask_sdk_core.utils.request_util.get_user_id(handler_input)    
+      dyndb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+      table = dyndb.Table('Menstruation')           
+      data = table.query(
+              KeyConditions={
+                'UserID': {
+                'AttributeValueList': [user_id],
+                'ComparisonOperator': 'EQ'
+                },
+            })
+
+      if data['Count'] == 0:
+          speech_text = "Welcome to period tracker. To add period data say, Add period and then the date. To get next period, say next period. To get last period , say last period. What would you like to do?"
+
+      else :
+          speech_text = "Welcome back to period tracker. What would you like to do?"
+
+      handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+      return handler_input.response_builder.response    
 
 class CatchAllExceptionHandler(AbstractExceptionHandler):
     def can_handle(self, handler_input, exception):
@@ -865,7 +883,7 @@ class AddPeriodIntentHandler(AbstractRequestHandler):
             raise(e)
         
 
-        handler_input.response_builder.speak(speech_text).set_should_end_session(False)
+        handler_input.response_builder.speak(speech_text).set_should_end_session(True)
         return handler_input.response_builder.response  
         
 class ShowPeriodIntentHandler(AbstractRequestHandler):
@@ -1387,7 +1405,7 @@ class HelpPeriodIntentHandler(AbstractRequestHandler):
 
 
     def handle(self, handler_input):
-      speech_text = "Please refer to application description for sample phrases,  You can add period data by saying add period date for 26th October 2021, to get next period date you can say next period, to get last period date you can say last period, to delete all your data you can say delete data"
+      speech_text = "Please refer to application description for sample phrases,  You can add period data by saying add period date for 26th October 2021, to get next period date you can say next period, to get last period date you can say last period, to delete all your data you can say delete data. What would you like to do?"
       handler_input.response_builder.speak(speech_text).set_should_end_session(False)
       return handler_input.response_builder.response   
 
